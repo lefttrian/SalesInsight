@@ -1,0 +1,60 @@
+{% extends "details_base.html" %}
+{% load staticfiles %}
+{% load myapp_tags %}
+{% load crispy_forms_tags %}
+{% load bootstrap4 %}
+{% block body2 %}
+    {% with object=object %}
+<body>
+            <div class="container-fluid">
+                 <div class="col" id="main">
+                        <br>
+                <table width="100%">
+                <tr>
+                <b> Πρόβλεψη πωλήσεων για
+                    {{ object.code }} {{ object.name }} Μοντέλο ARIMA: {{ arimamodel }}
+                </b>
+                </tr>
+                    <tr>
+                        <td>
+                            {% if graph %}
+                            <div>
+                            {{ graph|safe }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <tr>
+                            <td width="40%">
+                             {% if graph2 %}
+                                 <div id="accordion" >
+                                  <div class="card">
+                                    <div class="card-header">
+                                      <a class="card-link" data-toggle="collapse" href="#collapseOne">
+                                        Forecast Diagnostics
+                                      </a>
+                                    </div>
+                                    <div id="collapseOne" class="collapse" data-parent="#accordion">
+                                      <div class="card-body">
+                                            {{ graph2|safe }}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            {% endif %}
+                            </td>
+                            <td width="60%">
+                                {% if graph3 %}
+                            <div>
+                            {{ graph3|safe }}
+                            </div>
+                            {% endif %}
+                            </td>
+                        </td>
+                    </tr>
+                </table>
+                    </div>
+
+      </div>
+</body>
+        {% endwith %}
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "details_base.html" %}
+{% load staticfiles %}
+{% load myapp_tags %}
+{% load crispy_forms_tags %}
+{% load bootstrap4 %}
+{% block body2 %}
+    {% with object=object %}
+<body>
+            <div class="container-fluid">
+                 <div class="col" id="main">
+                        <br>
+                <table width="100%">
+                <tr>
+                <b> Ανάλυση πωλήσεων για
+                    {{ object.code }} {{ object.name }}
+                </b>
+                </tr>
+                            {% if graph %}
+                            <div>
+                            {{ graph|safe }}
+                            </div>
+                            {% endif %}
+                             {% if graph2 %}
+                                 {{ graph2|safe }}
+                               <div id="accordion" >
+                                  <div class="card">
+                                    <div class="card-header">
+                                      <a class="card-link" data-toggle="collapse" href="#collapseOne">
+                                        Autocorrelation values
+                                      </a>
+                                    </div>
+                                    <div id="collapseOne" class="collapse" data-parent="#accordion">
+                                      <div class="card-body">
+                                            {{ panel }}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                    </div>
+
+      </div>
+</body>
+        {% endwith %}
+{% endblock %}

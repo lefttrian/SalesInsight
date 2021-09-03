@@ -1,0 +1,206 @@
+{% extends "details_base.html" %}
+{% load staticfiles %}
+{% load myapp_tags %}
+{% load crispy_forms_tags %}
+{% load bootstrap4 %}
+{% block body2 %}
+<body>
+
+            <div class="container-fluid">
+                 <div class="col" id="main">
+                        <br>
+                <table width="100%">
+                <tr>
+                <h2> Βασικά στοιχεία
+                    {{ object.code }} {{ object.name }} {{ object.id }}
+                </h2>
+                </tr>
+                <tr>
+                   <td width="30%" valign="top">
+                        <table class="table table-striped  table-bordered table-sm ">
+                            {% for i in fields %}
+                                {% get_help_text object i as obj_help_text %}
+                                {% get_verbose_field_name object i as obj_ver_name %}
+                                {% if obj_ver_name != i %}
+                                <tr><td width="125px" align="right"><b>
+                                    {% if obj_help_text == "" %}
+                                        {{obj_ver_name}}
+                                    {% else %}
+                                        <abbr title="{{obj_help_text}}">{{obj_ver_name}}</abbr>
+                                    {% endif %}
+                                </b>:</td><td> {{ object|get_obj_attr:i }}</td></tr>
+                                {% endif %}
+                            {% endfor %}
+                        </table>
+                        <div id="DistrPlotAccordion" >
+                          <div class="card">
+                            <div class="card-header" id="headingDistrPlot">
+                              <h5 class="mb-0">
+                                <button class="btn btn-link" data-toggle="collapse" data-target="#collapseDistrPlot" aria-expanded="true" aria-controls="collapseDistrPlot">
+                                  Monthly units sold distribution (all periods)
+                                </button>
+                              </h5>
+                            </div>
+                            <div id="collapseDistrPlot" class="collapse" aria-labelledby="headingDistrPlot" data-parent="#DistrPlotAccordion">
+                              <div class="card-body">
+                                {% if graph5 %}
+                                     {{ graph5|safe }}
+                                {% endif %}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                   {% if not oi_suppliers_distinct is None %}
+                        <div class="container-fluid" >
+                      <h3>Suppliers</h3>
+                      <br>
+                        <ul class="nav nav-tabs" id="suppliercatTab" role="tablist">
+                          {% for t in oi_supplier_categories %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if forloop.counter == 1%}active show{% endif %}" data-toggle="tab" role="tab" aria-controls="suppliercat{{ forloop.counter }}" aria-selected="{% if forloop.counter == 1%}true {% else %}false{% endif %}" href="#suppliercat{{forloop.counter}}">{{ t.supplier_id__category__name}}</a>
+                            </li>
+                          {% endfor %}
+
+                      </ul>
+
+                         <div class="tab-content " id="suppliercatTabContent">
+                              {% for t in oi_supplier_categories %}
+                              <div id="suppliercat{{forloop.counter}}" class="tab-pane justify-content-start fade {% if forloop.counter == 1%}show active{% endif %}" role="tabpanel" aria-labelledby="suppliercat{{forloop.counter}}"><br>
+                                  <table class="table table-striped  table-bordered table-sm ">
+                                            {% for a in oi_supplier_cat_attributes %}
+                                            {%  for key, value in a.items %}
+                                            {% if a.name == t.supplier_id__category__name %}
+                                            <tr><td width="125px" align="right">
+                                            {{oi_attributes_fields|get_item:key}}
+                                            </td>
+                                            <td>
+                                               {% if key == "itemstock" %}
+                                                     {% get_supcatstock a.name object.id %}
+                                               {% else %}
+                                                     {{value}}
+                                                {% endif %}
+                                            </td>
+                                            </tr>
+                                            {%  endif %}
+                                            {%  endfor %}
+
+                                            {% endfor %}
+                                    </table>
+
+                                    <div id="accordion">
+                                        {% for s in oi_suppliers_distinct %}
+                                            {% if s.supplier_id__category__name == t.supplier_id__category__name %}
+                                              <div class="card">
+                                                <div class="card-header" id="heading{{forloop.counter}}">
+                                                  <h5 class="mb-0">
+                                                    <button class="btn btn-link" data-toggle="collapse" data-target="#collapse{{forloop.counter}}" aria-expanded="false" aria-controls="collapse{{forloop.counter}}">
+                                                      {{ s.supplier_id__name}}
+                                                    </button>
+                                                  </h5>
+                                                </div>
+                                                <div id="collapse{{forloop.counter}}" class="collapse" aria-labelledby="heading{{forloop.counter}}" data-parent="#accordion">
+                                                  <div class="card-body">
+                                                    <table class="table table-striped  table-bordered table-sm ">
+                                                        {% for a in oi_attributes %}
+                                                        {%  for key, value in a.items %}
+                                                        {% if a.supplier_id__name == s.supplier_id__name %}
+                                                        <tr><td width="125px" align="right">
+                                                        {{oi_attributes_fields|get_item:key}}
+                                                        </td>
+                                                        <td>
+                                                            {% if key == "itemstock" %}
+                                                                {% get_supstock a.supplier_id__code object.id %}
+                                                            {% elif key == "itemprice" %}
+                                                                {% get_supprice a.supplier_id__code object.id %}
+                                                            {% else %}
+                                                                {{value}}
+                                                            {% endif %}
+                                                        </td>
+                                                        </tr>
+                                                        {%  endif %}
+                                                        {%  endfor %}
+                                                        {% endfor %}
+                                                    </table>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                </div>
+                            </div>
+                                {% endfor %}
+                         </div>
+
+                    {% endif %}
+                        </td>
+                        <td width="70%" valign="top">
+                            <table class="table" >
+                            <tr>
+                                <td width="50%" valign="top">
+                                <div>
+                                   {% if graph %}
+                                    {{ graph|safe }}
+                                    {% endif %}
+                                </div>
+                                </td>
+                                <td colspan="2" width="50%" valign="top">
+                                    {% if graph2 %}
+                                     {{ graph2|safe }}
+                                   {% comment %}<div id="accordion" >
+                                      <div class="card">
+                                        <div class="card-header">
+                                          <a class="card-link" data-toggle="collapse" href="#collapseOne">
+                                            Autocorrelation values
+                                          </a>
+                                        </div>
+                                        <div id="collapseOne" class="collapse" data-parent="#accordion">
+                                          <div class="card-body">
+                                                {{ panel }}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>{% endcomment %}
+                                   {% endif %}
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td width="50%" valign="top">
+                                    {% if field1 %}
+                                        <h1>Average item value:</h1>
+                                       <h3>{{ field1|floatformat:2 }}</h3>
+                                    {% endif %}
+                                </td>
+                                 <td colspan="2" valign="top">
+                                    {% if field2 %}
+                                        <h1>Average margin (euro/%):</h1>
+                                       <h3>{{ field2|floatformat:2 }} / {{ field22|floatformat:0 }}%</h3>
+                                    {% endif %}
+                                 </td>
+
+                            </tr>
+                            <tr>
+                                 <td width="50%" valign="top">
+                                    {% if graph3 %}
+                                        <h2>Sales distribution:</h2>
+                                     {{ graph3|safe }}
+                                    {% endif %}
+                                 </td>
+                                <td colspan="2">
+                                    {% if graph4 %}
+                                        <h2>Year over year change:</h2>
+                                     {{ graph4|safe }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            </table>
+
+                        </td>
+                    </tr>
+                </table>
+                    </div>
+
+      </div>
+</body>
+{% endblock %}

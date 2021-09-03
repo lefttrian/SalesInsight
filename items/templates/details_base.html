@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+{% load bootstrap4 %}
+{% block body %}
+<body>
+<div class="d-flex" id="wrapper">
+
+    <!-- Sidebar -->
+    <div class="bg-light border-right" id="sidebar-wrapper">
+      <div class="sidebar-heading">Επιλογές</div>
+      <div class="list-group list-group-flush">
+          {% if "suppliers" in request.path %}
+                  <a href="{% url 'items:Supplier Details' object.id %}" class="list-group-item list-group-item-action bg-light">Basic details</a>
+                 <a href="{% url 'items:Supplier Sales Analysis' object.id %}" class="list-group-item list-group-item-action bg-light">Sales analysis</a>
+                <a href="{% url 'items:Supplier Forecast' object.id %}" class="list-group-item list-group-item-action bg-light">Forecasting</a>
+          {% elif "customers" in request.path  %}
+                <a href="{% url 'items:Customer Details' object.id %}" class="list-group-item list-group-item-action bg-light">Basic details</a>
+                 <a href="{% url 'items:Customer Sales Analysis' object.id %}" class="list-group-item list-group-item-action bg-light">Sales analysis</a>
+                <a href="{% url 'items:Customer Forecast' object.id %}" class="list-group-item list-group-item-action bg-light">Forecasting</a>
+          {% elif "itemcategories" in request.path  %}
+                <a href="{% url 'items:Product Categories Details' object.category %}" class="list-group-item list-group-item-action bg-light">Basic details</a>
+          {% elif "itemsubcategories" in request.path  %}
+                <a href="{% url 'items:Product SubCategory Details' object.id %}" class="list-group-item list-group-item-action bg-light">Basic details</a>
+                 <a href="{% url 'items:Product SubCategory Sales Analysis' object.id %}" class="list-group-item list-group-item-action bg-light">Sales analysis</a>
+                <a href="{% url 'items:Product SubCategory Forecast' object.id %}" class="list-group-item list-group-item-action bg-light">Forecasting</a>
+          {% else %}
+                 <a href="{% url 'items:Product Details' object.id %}" class="list-group-item list-group-item-action bg-light">Basic details</a>
+                 <a href="{% url 'items:Product Sales Analysis' object.id %}" class="list-group-item list-group-item-action bg-light">Sales analysis</a>
+                <a href="{% url 'items:Product Forecast' object.id %}" class="list-group-item list-group-item-action bg-light">Forecasting</a>
+          {% endif %}
+      </div>
+    </div>
+    <!-- /#sidebar-wrapper -->
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+        <button class="btn btn-outline-success my-2 my-sm-0" id="menu-toggle">Απόκρυψη επιλογών</button>
+             {% block body2 %}{% endblock %}
+    </div>
+    <!-- /#page-content-wrapper -->
+
+  </div>
+<script>
+    $("#menu-toggle").click(function(e) {
+      e.preventDefault();
+      $("#wrapper").toggleClass("toggled");
+      if($(this).text().trim() == 'Εμφάνιση επιλογών'){
+          $(this).text('Απόκρυψη επιλογών');
+      }else{
+          $(this).text('Εμφάνιση επιλογών');
+      }
+    });
+</script>
+
+
+</body>
+{% endblock %}

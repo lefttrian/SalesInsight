@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% block body %}
+    {% load bootstrap4 %}
+    {% load staticfiles%}
+    {% csrf_token %}
+<head>
+    <meta charset="UTF-8">
+    <title>Settings</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
+        <script async="async" >
+           function run_import() {
+               var pb = document.getElementById('progress-bar');
+               var pbm = document.getElementById('progress-bar-message');
+
+                  $.ajax({
+                    url: "{% url "items:Import" %}",
+                      contentType:"application/json",
+                    success: function (data) {
+                      if (data.task_id) {
+                          $(':button').prop('disabled', true);
+                        var progressUrl = "http://127.0.0.1:8000/celery-progress/"+data.task_id;
+
+                        CeleryProgressBar.initProgressBar(progressUrl,{onSuccess:enable_buttons ,
+     progressBarElement:pb, progressBarMessageElement:pbm  } );
+                      }
+                    },
+                    error: function () {alert('error')
+                  }});
+           }
+           function  update_attributes() {
+                var pb2 = document.getElementById('progress-bar2');
+                var pbm2 = document.getElementById('progress-bar-message2');
+               $.ajax({
+                    url: "{% url "items:Update" %}",
+                      contentType:"application/json",
+                    success: function (data) {
+                      if (data.task_id) {
+                          $(':button').prop('disabled', true);
+                        var progressUrl = "http://127.0.0.1:8000/celery-progress/"+data.task_id;
+                        CeleryProgressBar.initProgressBar(progressUrl, {onSuccess:enable_buttons ,progressBarElement:pb2, progressBarMessageElement:pbm2});
+                      }
+                    },
+                    error: function () {alert('error')
+                  }});
+           }
+            function enable_buttons(progressBarElement, progressBarMessageElement, progress) {
+               progressBarMessageElement.innerHTML="Success!";
+                progressBarElement.style.backgroundColor = "#88e188";
+                $(':button').prop('disabled', false);
+            }
+            function  run_forecast() {
+                var pb2 = document.getElementById('progress-bar3');
+                var pbm2 = document.getElementById('progress-bar-message3');
+               $.ajax({
+                    url: "{% url "items:updateforecast" %}",
+                      contentType:"application/json",
+                    success: function (data) {
+                      if (data.task_id) {
+                          $(':button').prop('disabled', true);
+                        var progressUrl = "http://127.0.0.1:8000/celery-progress/"+data.task_id;
+                        CeleryProgressBar.initProgressBar(progressUrl, {onSuccess:enable_buttons ,progressBarElement:pb2, progressBarMessageElement:pbm2});
+                      }
+                    },
+                    error: function () {alert('error')
+                  }});
+           }
+            function update_settings() {
+               var success_image="{% static  "items/img/custom/success.png" %}"
+                var fail_image="{% static  "items/img/custom/failure.png" %}"
+                $('#save_settings_img').show();
+                let a_percent=parseFloat($('#a_percent').val());
+                let b_percent=parseFloat($('#b_percent').val());
+                let c_percent=parseFloat($('#c_percent').val());
+                if ($.isNumeric(a_percent) && $.isNumeric(b_percent) && $.isNumeric(c_percent)) {
+                    if (a_percent>0 && b_percent>0 && c_percent>0) {
+                        let v_sum=a_percent + b_percent + c_percent;
+                    if ((v_sum) != 100) {
+                        $('#save_settings_img').attr("src",fail_image);
+                        document.getElementById('percent_warning').innerText = "The sum of the three values must equal 100";
+                    }
+                    else {
+                        document.getElementById('percent_warning').innerText ="";
+                        $.ajaxSetup({
+        headers: { "X-CSRFToken": getCookie("csrftoken") }
+    });
+                        $.ajax({
+                    url: "{% url "items:Settings" %}",
+                      contentType:"application/json",
+                            processData:false,
+                            type: "POST",
+                      data: JSON.stringify({'A_percent': a_percent, 'B_percent': b_percent,'C_percent': c_percent}),
+                    success: function (result) {
+                      $('#save_settings_img').attr("src",success_image);
+                    },
+                    error: function () {$('#save_settings_img').attr("src",fail_image);
+                  }});
+                    }}
+                    else {$('#save_settings_img').attr("src",fail_image);
+                    document.getElementById('percent_warning').innerText = "Only positive numbers are accepted";}
+                } else {$('#save_settings_img').attr("src",fail_image);
+                document.getElementById('percent_warning').innerText = "Only numbers are accepted";}
+
+            }
+            function run_optimize() {
+               var pb = document.getElementById('progress-bar4');
+               var pbm = document.getElementById('progress-bar-message4');
+
+                  $.ajax({
+                    url: "{% url "items:Optimize" %}",
+                      contentType:"application/json",
+                    success: function (data) {
+                      if (data.task_id) {
+                          $(':button').prop('disabled', true);
+                        var progressUrl = "http://127.0.0.1:8000/celery-progress/"+data.task_id;
+
+                        CeleryProgressBar.initProgressBar(progressUrl,{onSuccess:enable_buttons ,
+     progressBarElement:pb, progressBarMessageElement:pbm  } );
+                      }
+                    },
+                    error: function () {alert('error')
+                  }});
+           }
+        </script>
+</head>
+<body>
+<div class="container-fluid">
+    <table width="80%">
+        <tr>
+            <div class="pb-2 mt-4 mb-2 border-bottom">
+                <b> SalesInsight Actions</b>
+            </div>
+        </tr>
+        {% if  pending_task  %}
+            <div class="alert alert-danger" role="alert">
+                  There is a pending calculation in progress. Try refreshing this page later!
+            </div>
+        {% endif %}
+        <tr>
+            <td width="50%" valign="top">
+                <table class="table table-borderless table-sm ">
+                    <tr>
+                        <td width="30%" align="right">1. Import any missing products from the ERP</td>
+                        {% if pending_task %}
+                        <td align="left" width="2%"><button id="import_items" class="btn btn-secondary  disabled"  >Run!</button></td>
+                        {% else %}
+                        <td align="left" width="2%"><button id="import_items" class="btn btn-danger" onclick=run_import() >Run!</button></td>
+                        {% endif %}
+                        <td align="left">
+                            <div class='progress-wrapper'>
+                            <div id='progress-bar' class='progress-bar' style="background-color: #88e188; width: 0%;">&nbsp;</div>
+                            </div>
+                            <div id="progress-bar-message"></div>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td width="25%"  align="right">2. Update all product attributes</td>
+                        {% if pending_task %}
+                        <td align="left" width="2%"><button id="import_items" class="btn btn-secondary disabled" >Run!</button></td>
+                        {% else %}
+                        <td align="left" width="2%"><button id="import_items" class="btn btn-danger" onclick=update_attributes() >Run!</button></td>
+                        {% endif %}
+                        <td align="left">
+                         <div class='progress-wrapper'>
+                            <div id='progress-bar2' class='progress-bar' style="background-color: #88e188; width: 0%;">&nbsp;</div>
+                            </div>
+                            <div id="progress-bar-message2"></div>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td width="25%"  align="right">3. Calculate demand forecasts</td>
+                        {% if pending_task %}
+                        <td align="left" width="2%"><button id="update_forecasts" class="btn btn-secondary disabled" >Run!</button></td>
+                        {% else %}
+                        <td align="left" width="2%"><button id="update_forecasts" class="btn btn-danger" onclick=run_forecast() >Run!</button></td>
+                        {% endif %}
+                        <td align="left">
+                         <div class='progress-wrapper'>
+                            <div id='progress-bar3' class='progress-bar' style="background-color: #88e188; width: 0%;">&nbsp;</div>
+                            </div>
+                            <div id="progress-bar-message3"></div>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td width="25%"  align="right">4. Optimize restocking</td>
+                        {% if pending_task %}
+                        <td align="left" width="2%"><button id="optimize" class="btn btn-secondary disabled" >Run!</button></td>
+                        {% else %}
+                        <td align="left" width="2%"><button id="optimize" class="btn btn-danger" onclick=run_optimize() >Run!</button></td>
+                        {% endif %}
+                        <td align="left">
+                         <div class='progress-wrapper'>
+                            <div id='progress-bar4' class='progress-bar' style="background-color: #88e188; width: 0%;">&nbsp;</div>
+                            </div>
+                            <div id="progress-bar-message4"></div>
+                        </td>
+
+                    </tr>
+                </table>
+            </td>
+            <td width="30%" valign="top"></td>
+        </tr>
+
+    </table>
+
+    <table width="50%" class="table  table-borderless table-sm ">
+    <tr>
+            <div class="pb-2 mt-4 mb-2 border-bottom">
+                <b> SalesInsight Options
+                </b>
+            </div>
+        </tr>
+        <tr>ABC Analysis presets</tr>
+    <br>
+        <tr><td class="align-middle"><form>
+          <div class="form-row">
+            <div class="col">
+             <label for="a_percent">Class A %</label>
+              <input type="number" min="0" max="100" class="form-control" id="a_percent" value={{ QuerySet.A_percent }}>
+            </div>
+            <div class="col">
+              <label for="b_percent">Class B %</label>
+              <input type="number" min="0" max="100" class="form-control" id="b_percent"  value={{ QuerySet.B_percent }}>
+            </div>
+              <div class="col">
+              <label for="c_percent">Class C %</label>
+              <input type="number" min="0" max="100" class="form-control" id="c_percent"  value={{ QuerySet.C_percent }}>
+            </div>
+              <div class="col-md-8 mb-3">
+                  <label for="percent_warning"></label>
+                  <span class="align-middle"><p id="percent_warning" class="text-danger"></p></span>
+              </div>
+          </div>
+
+        </form></td></tr>
+
+    <tr><td align="left" ><button id="update_settings" class="btn btn-danger" onclick=update_settings() >Save</button>   <img id="save_settings_img" src="{% static "items/img/custom/rolling.gif" %}"  width="50" height="50" style="display: none;" ></td><td id="update_settings_info"></td></tr>
+   </table>
+</div>
+
+
+</body>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_tags %}
+{% load bootstrap4 %}
+{% load django_tables2 %}
+{% load static %}
+{% load i18n %}
+{% block body %}
+<body>
+    <div class="container">
+    {% if filter.base_filters|length > 0 %}
+        <form action="" method="get" id="form_login" class="form-inline">
+            {{ filter.form|crispy }}
+            <button type="filter">Filter</button>
+        </form>
+    {% endif %}
+    {% render_table table %}
+    </div>
+</body>
+{% endblock %}
